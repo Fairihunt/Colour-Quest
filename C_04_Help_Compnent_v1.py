@@ -42,10 +42,29 @@ class StartGame:
 
 class Play:
     """
-    Interface for playing Colour Quest Game
+    Interface for playing the Colour Quest Game
     """
 
     def __init__(self, how_many):
+        self.rounds_won = IntVar()
+
+        # Lists for stats component
+
+        # Highest Score Test Data...
+        # self.all_scores_list = [20, 20, 20, 16, 19]
+        # self.all_high_score_list = [20, 20, 20, 16, 19]
+        # self.rounds_won.set(5)
+
+        # Lowest Score Test Data
+        # self.all_scores_list = [0, 0, 0, 0, 0]
+        # self.all_high_score_list = [20, 20, 20, 16, 19]
+        # self.rounds_won.set(0)
+
+        # Random Score Test Data
+        self.all_scores_list = [0, 15, 16, 0, 16]
+        self.all_high_score_list = [20, 19, 18, 20, 20]
+        self.rounds_won.set(3)
+
         self.play_box = Toplevel()
 
         self.game_frame = Frame(self.play_box)
@@ -55,22 +74,62 @@ class Play:
                                    padx=5, pady=5)
         self.heading_label.grid(row=0)
 
-        self.hints_button = Button(self.game_frame, font=("Arial", 14, "bold"),
-                                   text="Hints", width=15, fg="#FFFFFF",
-                                   bg="#FF8000", padx=10, pady=10, command=self.to_hints)
-        self.hints_button.grid(row=1)
+        self.stats_button = Button(self.game_frame, font=("Arial", 14, "bold"),
+                                   text="Stats", width=15, fg="#FFFFFF",
+                                   bg="#FF8000", padx=10, pady=10, command=self.to_stats)
+        self.stats_button.grid(row=1)
 
-    def to_hints(self):
+    def to_stats(self):
         """
-        Displays hints for playing game
-        :return:
-        """
-        DisplayHints(self)
+        Retrieves everything we need to display the game / round statistics"""
+
+        # IMPORTANT: retrieve number of rounds
+        # won as a number rather than the 'self' container
+        rounds_won = self.rounds_won.get()
+        stats_bundle = [rounds_won, self.all_scores_list,
+                        self.all_high_score_list]
+
+        Stats(self, stats_bundle)
 
 
-class DisplayHints:
+class Stats:
     """
-    Display hints for Colour Quest Game
+    Displays stats for Colour Quest Game
     """
 
-    def __init__(self, partner):...
+    def __init__(self, partner, all_stats_info, user_scores):
+
+        # Extract information from master list...
+        self.close_stats = None
+        rounds_won = all_stats_info[0]
+        users_scores = all_stats_info[1]
+        high_scores = all_stats_info[2]
+
+        # sort user scores to find high score...
+        user_scores.sort()
+        self.stats_box = Toplevel()
+
+        # disable help button
+        partner.stats_button.config(state=DISABLED)
+
+        # If users press cross at top, closes help and
+        # 'releases' help button
+        self.stats_box.protocol('WM_DELETE_WINDOW',
+                                partial(self.close_stats, partner))
+
+
+        self.stats_frame = Frame(self.stats_box, width=350)
+        self.stats_frame.grid()
+
+        # Math to populate Stats dialogue
+        rounds_played = len(user_scores)
+
+        success_rate = rounds_won / rounds_played
+
+
+# main routine
+if __name__ == "__main__":
+    root = Tk()
+    root.title("Colour Quest")
+    StartGame()
+    root.mainloop()
