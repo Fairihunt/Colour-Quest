@@ -45,26 +45,7 @@ class Play:
     Interface for playing the Colour Quest Game
     """
 
-    def __init__(self, how_many):
-        self.rounds_won = IntVar()
-
-        # Lists for stats component
-
-        # Highest Score Test Data...
-        # self.all_scores_list = [20, 20, 20, 16, 19]
-        # self.all_high_score_list = [20, 20, 20, 16, 19]
-        # self.rounds_won.set(5)
-
-        # Lowest Score Test Data
-        # self.all_scores_list = [0, 0, 0, 0, 0]
-        # self.all_high_score_list = [20, 20, 20, 16, 19]
-        # self.rounds_won.set(0)
-
-        # Random Score Test Data
-        self.all_scores_list = [0, 15, 16, 0, 16]
-        self.all_high_score_list = [20, 19, 18, 20, 20]
-        self.rounds_won.set(3)
-
+    def __init__ (self, how_many):
         self.play_box = Toplevel()
 
         self.game_frame = Frame(self.play_box)
@@ -74,57 +55,79 @@ class Play:
                                    padx=5, pady=5)
         self.heading_label.grid(row=0)
 
-        self.stats_button = Button(self.game_frame, font=("Arial", 14, "bold"),
-                                   text="Stats", width=15, fg="#FFFFFF",
-                                   bg="#FF8000", padx=10, pady=10, command=self.to_stats)
-        self.stats_button.grid(row=1)
+        self.hints_button = Button(self.game_frame, font=("Arial", 14, "bold"),
+                                   text="Hints", width=15, fg="#FFFFFF",
+                                   bg="#FF8000", padx=10, pady=10, command=self.to_hints)
+        self.hints_button.grid(row=1)
 
-    def to_stats(self):
+    def to_hints(self):
         """
-        Retrieves everything we need to display the game / round statistics"""
-
-        # IMPORTANT: retrieve number of rounds
-        # won as a number rather than the 'self' container
-        rounds_won = self.rounds_won.get()
-        stats_bundle = [rounds_won, self.all_scores_list,
-                        self.all_high_score_list]
-
-        Stats(self, stats_bundle)
+        Display hints for playing game
+        :return:
+        """
+        DisplayHints(self)
 
 
-class Stats:
+
+class DisplayHints:
     """
-    Displays stats for Colour Quest Game
+    Displays hints for Colour Quest Game
     """
 
-    def __init__(self, partner, all_stats_info, user_scores):
 
-        # Extract information from master list...
-        self.close_stats = None
-        rounds_won = all_stats_info[0]
-        users_scores = all_stats_info[1]
-        high_scores = all_stats_info[2]
-
-        # sort user scores to find high score...
-        user_scores.sort()
-        self.stats_box = Toplevel()
+    def __init__(self, partner):
+        # setup dialogue box and background colour
+        background = "#ffe6cc"
+        self.help_box = Toplevel()
 
         # disable help button
-        partner.stats_button.config(state=DISABLED)
+        partner.hints_button.config(state=DISABLED)
 
         # If users press cross at top, closes help and
         # 'releases' help button
-        self.stats_box.protocol('WM_DELETE_WINDOW',
-                                partial(self.close_stats, partner))
+        self.help_box.protocol('WM_DELETE_WINDOW',
+                               partial(self.close_help, partner))
 
+        self.help_frame = Frame(self.help_box, width=300,
+                                height=200)
 
-        self.stats_frame = Frame(self.stats_box, width=350)
-        self.stats_frame.grid()
+        self.help_frame.grid()
 
-        # Math to populate Stats dialogue
-        rounds_played = len(user_scores)
+        self.help_heading_label = Label(self.help_frame,
+                                        text="Help / Info",
+                                        font=("Arial", 14, "bold"))
+        self.help_heading_label.grid(row=0)
 
-        success_rate = rounds_won / rounds_played
+        help_text = "This is my colour game help."
+
+        self.help_text_label = Label(self.help_frame,
+                                     text=help_text, wraplength=350,
+                                     justify="left")
+        self.help_text_label.grid(row=1, padx=10)
+
+        self.dismiss_button = Button(self.help_frame,
+                                     font=("Arial", 12, "bold"),
+                                     text="Dismiss", bg="#CC6600",
+                                     fg="#FFFFFF",
+                                     command=partial(self.close_help, partner))
+        self.dismiss_button.grid(row=2, padx=10, pady=10)
+
+        # List and loop to set background colour on
+        # everything except the buttons
+
+        recolour_list = [self.help_frame, self.help_heading_label,
+                         self.help_text_label]
+
+        for item in recolour_list:
+            item.config(bg=background)
+
+    def close_help(self, partner):
+        """
+        Close help dialogue box (and enables help button)
+        """
+        # Put help button back to normal...
+        partner.hints_button.config(state=NORMAL)
+        self.help_box.destroy()
 
 
 # main routine

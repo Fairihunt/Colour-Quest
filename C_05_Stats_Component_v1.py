@@ -2,6 +2,7 @@ from tkinter import *
 from functools import partial # To prevent unwanted windows
 
 
+
 class StartGame:
     """
     Initial Game interface (asks users how many rounds they
@@ -191,6 +192,9 @@ class Stats:
 
         # closes help dialogue (used by button and x at the top of dialogue
 
+    def close_stats(self, partner):
+        partner.stats_button.config(state=NORMAL)
+        self.stats_box.destroy()
 
 # main routine
 if __name__ == "__main__":
