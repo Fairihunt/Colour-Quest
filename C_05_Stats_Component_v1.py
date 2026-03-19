@@ -6,7 +6,7 @@ from functools import partial # To prevent unwanted windows
 class StartGame:
     """
     Initial Game interface (asks users how many rounds they
-    would like to play)
+    would like to play
     """
 
     def __init__(self):
@@ -17,80 +17,140 @@ class StartGame:
         self.start_frame = Frame(padx=10, pady=10)
         self.start_frame.grid()
 
+        # Strings for labels
+        intro_string = ("In each round you will be invited to choose a colour. Your goal is "
+                        "to beat the target score and win the round (and keep your points).")
+
+        # choose_string = "Oops - Please choose a whole number more than zero."
+        choose_string = "How many rounds do you want to play?"
+
+        # List of labels to be made (text | font | fg)
+        start_labels_list = [
+            ["Colour Quest", ("Arial", 16, "bold"), None],
+            [intro_string, ("Arial", 12), None],
+            [choose_string, ("Arial", 12, "bold"), "#009900"]
+        ]
+
+        # Create labels and add them to the reference list
+
+        start_label_ref = []
+        for count, item in enumerate(start_labels_list):
+            make_label = Label(self.start_frame, text=item[0], font=item[1],
+                               fg=item[2],
+                               wraplength=350, justify="left", pady=10, padx=20)
+            make_label.grid(row=count)
+
+            start_label_ref.append(make_label)
+
+        # extract choice label so that it can be changed to an
+        # error message if necessary
+        self.choose_label = start_label_ref[2]
+
+        # Frame so that the entry box and button can be in the same row.
+        self.entry_area_frame = Frame(self.start_frame)
+        self.entry_area_frame.grid(row=3)
+
+        self.num_rounds_entry = Entry(self.entry_area_frame, font=("Arial", 20, "bold"),
+                                      width=10)
+        self.num_rounds_entry.grid(row=0, column=0, padx=10, pady=10)
+
         # Create play button...
-        self.play_button = Button(self.start_frame, font=("Arial", 16, "bold"),
-                                  fg="#FFFFFF", bg="#0057D8", text="Play", width=10,
+        self.play_button = Button(self.entry_area_frame, font=("Arial", 16, "bold"),
+                                  fg="#FFFFFF", bg="#005708", text="Play", width=10,
                                   command=self.check_rounds)
-        self.play_button.grid(row=0, column=1, padx=20, pady=20)
+        self.play_button.grid(row=0, column=1)
 
     def check_rounds(self):
         """
-        Checks users have entered 1 or more rounds
+        Check users have entered 1 or more rounds
         """
 
         # Retrieve temperature to be converted
-        rounds_wanted = 5
-        self.to_play(rounds_wanted)
+        rounds_wanted = self.num_rounds_entry.get()
 
-    def to_play(self, num_rounds):
-        """
-        Invokes Game GUI and takes across number of rounds to be played.
-        """
-        Play(num_rounds)
-        # Hide root window (ie:hide rounds choice window).
-        root.withdraw()
+        # Reset label and entry box (for when users come back to home screen)
+        self.choose_label.config(fg="#009900", font=("Arial", 12, "bold"))
+        self.num_rounds_entry.config(bg="#FFFFFF")
+
+        error = "Oops - Please choose a whole number more than zero"
+        has_errors = "no"
+
+        # checks that amount to be converted is a number above absolute zero
+        try:
+            rounds_wanted = int(rounds_wanted)
+            if rounds_wanted > 0:
+                # Clear entry box and reset instruction label so
+                # that when users play a new game, they don't see an error message.
+                self.num_rounds_entry.delete(0, END)
+                self.choose_label.config(text="How many rounds do you want to play?")
+
+                # Invoke Play Class (and take across number of rounds)
+                Play(rounds_wanted)
+                # Hide root window (ie: hide rounds choice window)
+                root.withdraw()
+            else:
+                has_errors = "yes"
+
+        except ValueError:
+            has_errors = "yes"
+
+        # display the error if necessary
+        if has_errors == "yes":
+            self.choose_label.config(text=error, fg="#990000",
+                                     font=("Arial", 10, "bold"))
+            self.num_rounds_entry.config(bg="#F4CCCC")
+            self.num_rounds_entry.delete(0, END)
 
 class Play:
-            """
-            Interface for playing the Colour Quest Game
-            """
+    """
+    Interface for playing Colour Quest game
+    """
 
-            def __init__(self, how_many):
-                self.rounds_won = IntVar()
+    def __init__(self, how_many):
+        self.rounds_won = IntVar()
 
-                # Lists for stats component
+        # Lists for stats component
 
-                # Highest Score Test Data...
-                # self.all_scores_list = [20, 20, 20, 16, 19]
-                # self.all_high_score_list = [20, 20, 20, 16, 19]
-                # self.rounds_won.set(5)
+        # Highest Score Test Data...
+        # self.all_scores_list = [20, 20, 20, 16, 19]
+        # self.all_high_score_list = [20, 20, 20, 16, 19]
+        # self.rounds_won.set(5)
 
-                # Lowest Score Test Data
-                # self.all_scores_list = [0, 0, 0, 0, 0]
-                # self.all_high_score_list = [20, 20, 20, 16, 19]
-                # self.rounds_won.set(0)
+        # Lowest Score Test Data...
+        # self.all_scores_list = [0, 0, 0, 0, 0]
+        # self.all_high_score_list = [20 ,20, 20, 16, 19]
+        # self.rounds_won.set(0)
 
-                # Random Score Test Data
-                self.all_scores_list = [0, 15, 16, 0, 16]
-                self.all_high_score_list = [20, 19, 18, 20, 20]
-                self.rounds_won.set(3)
+        # Random Score Test Data...
+        self.all_scores_list = [0, 15, 16, 0, 16]
+        self.all_high_score_list = [20, 19, 18, 20, 20]
+        self.rounds_won.set(3)
 
-                self.play_box = Toplevel()
+        self.play_box = Toplevel()
 
-                self.game_frame = Frame(self.play_box)
-                self.game_frame.grid(padx=10, pady=10)
+        self.game_frame = Frame(self.play_box)
+        self.game_frame.grid(padx=10, pady=10)
 
-                self.heading_label = Label(self.game_frame, text="Colour Quest", font=("Arial", 16, "bold"),
-                                           padx=5, pady=5)
-                self.heading_label.grid(row=0)
+        self.heading_label = Label(self.game_frame, text="Colour Quest", font=("Arial", 16, "bold"),
+                                   padx=5, pady=5)
+        self.heading_label.grid(row=0)
 
-                self.stats_button = Button(self.game_frame, font=("Arial", 14, "bold"),
-                                           text="Stats", width=15, fg="#FFFFFF",
-                                           bg="#FF8000", padx=10, pady=10, command=self.to_stats)
-                self.stats_button.grid(row=1)
+        self.stats_button = Button(self.game_frame, font=("Arial", 14, "bold"),
+                                   text="Stats", width=15, fg="#FFFFFF",
+                                   bg="#FF8000", padx=10, pady=10, command=self.to_stats)
+        self.stats_button.grid(row=1)
 
-            def to_stats(self):
-                """
-                Retrieves everything we need to display the game / round statistics"""
+    def to_stats(self):
+        """
+        Retrieve everything we need to display the game / round statistics"""
 
-                # IMPORTANT: retrieve number of rounds
-                # won as a number rather than the 'self' container
-                rounds_won = self.rounds_won.get()
-                stats_bundle = [rounds_won, self.all_scores_list,
-                                self.all_high_score_list]
+        # IMPORTANT: retrieve number of rounds
+        # won as a number (rather than the self container)
+        rounds_won = self.rounds_won.get()
+        stats_bundle = [rounds_won, self.all_scores_list,
+                        self.all_high_score_list]
 
-                Stats(self, stats_bundle)
-
+        Stats(self, stats_bundle)
 
 
 class Stats:
@@ -115,7 +175,7 @@ class Stats:
         # If users press cross at top, closes help and
         # 'releases' help button
         self.stats_box.protocol('WM_DELETE_WINDOW',
-                                        partial(self.close_stats, partner))
+                                partial(self.close_stats, partner))
 
         self.stats_frame = Frame(self.stats_box, width=350)
         self.stats_frame.grid()
@@ -133,7 +193,7 @@ class Stats:
         # Strings for Stats label...
 
         success_string = (f"Success Rate: {rounds_won} / {rounds_played}"
-                                  f" ({success_rate:.0f}%")
+                          f" ({success_rate:.0f}%")
         total_score_string = f"Total Score: {total_score}"
         max_possible_string = f"Maximum Possible Score: {max_possible}"
         best_score_string = f"Best Score: {best_score}"
@@ -141,14 +201,14 @@ class Stats:
         # custom comment text and formatting
         if total_score == max_possible:
             comment_string = ("Amazing! You got the highest "
-                                      "possible score!")
+                              "possible score!")
             comment_colour = "#D5E8D4"
 
         elif total_score == 0:
             comment_string = ("Oops - You've lost every round! "
-                                      "You might want to look at the hints!")
+                              "You might want to look at the hints!")
             comment_colour = "#F8CECC"
-            best_score_string = f"BEst Score: n/a"
+            best_score_string = f"Best Score: n/a"
         else:
             comment_string = ""
             comment_colour = "#F0F0F0"

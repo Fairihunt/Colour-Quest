@@ -281,41 +281,7 @@ class Play:
         root.deiconify()
         self.play_box.destroy()
 
-class Play:
-    """
-    Interface for playing the Colour Quest Game
-    """
 
-    def __init__ (self, how_many):
-        self.play_box = Toplevel()
-
-        self.game_frame = Frame(self.play_box)
-        self.game_frame.grid(padx=10, pady=10)
-
-        self.heading_label = Label(self.game_frame, text="Colour Quest", font=("Arial", 16, "bold"),
-                                   padx=5, pady=5)
-        self.heading_label.grid(row=0)
-
-        self.hints_button = Button(self.game_frame, font=("Arial", 14, "bold"),
-                                   text="Hints", width=15, fg="#FFFFFF",
-                                   bg="#FF8000", padx=10, pady=10, command=self.to_hints)
-        self.hints_button.grid(row=1)
-
-    def to_hints(self):
-        """
-        Display hints for playing game
-        :return:
-        """
-        DisplayHints(self)
-
-
-
-
-
-class DisplayHints:
-    """
-    Displays hints for Colour Quest Game
-    """
 
 
 # main routine

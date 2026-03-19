@@ -220,6 +220,7 @@ class Play:
         # Retrieve Labels so they can be configured later
         self.heading_label = play_labels_ref[0]
         self.target_label = play_labels_ref[1]
+        self.choose_label = play_labels_ref[2]
         self.results_label = play_labels_ref[3]
 
         # set up colour buttons...
@@ -264,6 +265,7 @@ class Play:
 
             # Retrieve next, stats and end button so that they can be configured
             self.next_button = control_ref_list[0]
+            self.hints_button = control_ref_list[1]
             self.stats_button = control_ref_list[2]
             self.end_game_button = control_ref_list[3]
 
@@ -281,9 +283,6 @@ class Play:
 
         # retrieve number of rounds played , add one to it and configure heading
         rounds_played = self.rounds_played.get()
-        print("rounds played", rounds_played)
-
-        rounds_played += 1
         self.rounds_played.set(rounds_played)
 
         rounds_wanted = self.rounds_wanted.get()
@@ -298,7 +297,7 @@ class Play:
         self.all_high_score_list.append(highest)
 
         # Update heading and score to beat labels. "Hide" results label
-        self.heading_label.config(text=f"Round {rounds_played} of {rounds_wanted}")
+        self.heading_label.config(text=f"Round {rounds_played + 1} of {rounds_wanted}")
         self.target_label.config(text=f"Target Score: {median}",
                                  font=("Arial", 14, "bold"))
         self.results_label.config(text=f"{'=' * 7}", bg="#F0F0F0")
@@ -320,6 +319,14 @@ class Play:
         """
         # Get user score and colour based on button press...
         score =int(self.round_colour_list[user_choice][1])
+
+        # Add one to the number of rounds played and retrieve
+        # the number of rounds won
+        rounds_played = self.rounds_played.get()
+        rounds_played += 1
+        self.rounds_played.set(rounds_played)
+
+        rounds_won = self.rounds_won.get()
 
         # alternate way to get button name. Good for if buttons have been scrambled!
         colour_name = self.colour_button_ref[user_choice].cget('text')
@@ -352,12 +359,28 @@ class Play:
         self.stats_button.config(state=NORMAL)
 
         # check to see if game is over
-        rounds_played = self.rounds_played.get()
         rounds_wanted = self.rounds_wanted.get()
 
+        # Code for when the game ends!
         if rounds_played == rounds_wanted:
+
+
+            # work out success rate
+            success_rate = rounds_won / rounds_played * 100
+            success_string = (f"Success Rate: "
+                              f"({rounds_won} / {rounds_played} "
+                              f"({success_rate:.0f}%)")
+
+
+            # Configure 'end game' labels /buttons
+            self.heading_label.config(text="Game Over")
+            self.target_label.config(text=success_string)
+            self.choose_label.config(text="Please click the stats "
+                                     "button for more info.")
             self.next_button.config(state=DISABLED, text="Game Over")
-            self.end_game_button.config(text="Play Again", bg="#006600")
+            self.stats_button.config(bg="#990000")
+            self.end_game_button.config(text="Play Again", bg="#006600",
+                                        compound="right", width=25)
 
         for item in self.colour_button_ref:
             item.config(state=DISABLED)
@@ -380,15 +403,79 @@ class Play:
 
         Stats(self, stats_bundle)
 
-
     def to_hints(self):
         """
         Display hints for playing game
         :return:
         """
-        DisplayHints()
+        DisplayHints(self)
 
+class DisplayHints:
+    """
+    Displays hints for Colour Quest Game
+    """
 
+    def __init__(self, partner):
+        # setup dialogue box and background colour
+        background = "#ffe6cc"
+        self.help_box = Toplevel()
+
+        # disable help button
+        partner.hints_button.config(state=DISABLED)
+
+        # If users press cross at top, closes help and
+        # 'releases' help button
+        self.help_box.protocol('WM_DELETE_WINDOW',
+                               partial(self.close_help, partner))
+
+        self.help_frame = Frame(self.help_box, width=300,
+                                height=200)
+
+        self.help_frame.grid()
+
+        self.help_heading_label = Label(self.help_frame,
+                                        text="Help / Info",
+                                        font=("Arial", 14, "bold"))
+        self.help_heading_label.grid(row=0)
+
+        help_text = ("The score for each colour relates to its hexadecimal code. \n\n"
+                     "Remember, the hex code for white is #FFFFFF - which is the best "
+                     "possible score. \n\n"
+                     "The hex code for black is #000000 which is the worst possible "
+                     "score. \n\n"
+                     "The first colour in the code is red, so if you had to choose "
+                     "between red (#FF0000), green (#00FF00), and blue (#0000FF), then"
+                     "red would be the best choice. \n\n"
+                     "Good luck!")
+
+        self.help_text_label = Label(self.help_frame,
+                                     text=help_text, wraplength=350,
+                                     justify="left")
+        self.help_text_label.grid(row=1, padx=10)
+
+        self.dismiss_button = Button(self.help_frame,
+                                     font=("Arial", 12, "bold"),
+                                     text="Dismiss", bg="#CC6600",
+                                     fg="#FFFFFF",
+                                     command=partial(self.close_help, partner))
+        self.dismiss_button.grid(row=2, padx=10, pady=10)
+
+        # List and loop to set background colour on
+        # everything except the buttons
+
+        recolour_list = [self.help_frame, self.help_heading_label,
+                         self.help_text_label]
+
+        for item in recolour_list:
+            item.config(bg=background)
+
+    def close_help(self, partner):
+        """
+        Close help dialogue box (and enables help button)
+        """
+        # Put help button back to normal...
+        partner.hints_button.config(state=NORMAL)
+        self.help_box.destroy()
 
 class Stats:
     """
@@ -412,7 +499,7 @@ class Stats:
         # If users press cross at top, closes help and
         # 'releases' help button
         self.stats_box.protocol('WM_DELETE_WINDOW',
-                                        partial(self.close_stats, partner))
+                                partial(self.close_stats, partner))
 
         self.stats_frame = Frame(self.stats_box, width=350)
         self.stats_frame.grid()
@@ -430,7 +517,7 @@ class Stats:
         # Strings for Stats label...
 
         success_string = (f"Success Rate: {rounds_won} / {rounds_played}"
-                                  f" ({success_rate:.0f}%")
+                          f" ({success_rate:.0f}%")
         total_score_string = f"Total Score: {total_score}"
         max_possible_string = f"Maximum Possible Score: {max_possible}"
         best_score_string = f"Best Score: {best_score}"
@@ -438,14 +525,14 @@ class Stats:
         # custom comment text and formatting
         if total_score == max_possible:
             comment_string = ("Amazing! You got the highest "
-                                      "possible score!")
+                              "possible score!")
             comment_colour = "#D5E8D4"
 
         elif total_score == 0:
             comment_string = ("Oops - You've lost every round! "
-                                      "You might want to look at the hints!")
+                              "You might want to look at the hints!")
             comment_colour = "#F8CECC"
-            best_score_string = f"BEst Score: n/a"
+            best_score_string = f"Best Score: n/a"
         else:
             comment_string = ""
             comment_colour = "#F0F0F0"
@@ -489,12 +576,11 @@ class Stats:
 
         # closes help dialogue (used by button and x at the top of dialogue
 
+    def close_stats(self, partner):
+        partner.stats_button.config(state=NORMAL)
+        self.stats_box.destroy()
 
 
-class DisplayHints:
-    """
-    Displays hints for Colour Quest Game
-    """
 
 
 

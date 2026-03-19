@@ -57,10 +57,10 @@ class Play:
 
         self.hints_button = Button(self.game_frame, font=("Arial", 14, "bold"),
                                    text="Hints", width=15, fg="#FFFFFF",
-                                   bg="#FF8000", padx=10, pady=10, command=self.to_hints)
+                                   bg="#FF8000", padx=10, pady=10, command=self.hints_button)
         self.hints_button.grid(row=1)
 
-    def to_hints(self):
+    def hints_button(self):
         """
         Display hints for playing game
         :return:
@@ -98,7 +98,15 @@ class DisplayHints:
                                         font=("Arial", 14, "bold"))
         self.help_heading_label.grid(row=0)
 
-        help_text = "This is my colour game help."
+        help_text = ("The score for each colour relates to its hexadecimal code. \n\n"
+                     "Remember, the hex code for white is #FFFFFF - which is the best "
+                     "possible score. \n\n"
+                     "The hex code for black is #000000 which is the worst possible "
+                     "score. \n\n"
+                     "The first colour in the code is red, so if you had to choose "
+                     "between red (#FF0000), green (#00FF00), and blue (#0000FF), then"
+                     "red would be the best choice. \n\n"
+                     "Good luck!")
 
         self.help_text_label = Label(self.help_frame,
                                      text=help_text, wraplength=350,
@@ -128,6 +136,8 @@ class DisplayHints:
         # Put help button back to normal...
         partner.hints_button.config(state=NORMAL)
         self.help_box.destroy()
+
+        
 
 
 # main routine
